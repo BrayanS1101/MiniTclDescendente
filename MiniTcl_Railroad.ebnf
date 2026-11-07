@@ -1,0 +1,88 @@
+manual_script_input ::= program
+program ::= script 'EOF'
+
+script ::= ('WS' | 'SEP')* (command (command_gap command)*)? ('WS' | 'SEP')*
+command_gap ::= 'WS'* 'SEP' ('WS' | 'SEP')*
+command ::= word ('WS' word)*
+word ::= 'BRACED' | quoted_word | bare_word
+quoted_word ::= 'QOPEN' part* 'QCLOSE'
+bare_word ::= part+
+part ::= 'TEXT' | 'VAR' | substitution
+substitution ::= '[' script ']'
+
+sly_expression_input ::= expression
+expression ::= logical_or
+logical_or ::= logical_or '||' logical_and | logical_and
+logical_and ::= logical_and '&&' equality | equality
+equality ::= equality ('==' | '!=' | 'eq' | 'ne') relational | relational
+relational ::= relational ('<' | '<=' | '>' | '>=') additive | additive
+additive ::= additive ('+' | '-') multiplicative | multiplicative
+multiplicative ::= multiplicative ('*' | '/' | '%') unary | unary
+unary ::= ('+' | '-' | '!') unary | power
+power ::= primary '**' unary | primary
+primary ::= 'NUMBER' | 'BOOL' | 'VAR' | 'STRING' | '(' expression ')' | 'CMD_SUBST'
+
+builtin_forms ::= set_cmd | unset_cmd | incr_cmd | append_cmd | puts_cmd
+                | expr_cmd | if_cmd | while_cmd | for_cmd | foreach_cmd
+                | proc_cmd | return_cmd | break_cmd | continue_cmd
+                | global_cmd | catch_cmd | error_cmd
+                | list_cmd | llength_cmd | lindex_cmd | lappend_cmd | lset_cmd
+                | dict_cmd | string_cmd | split_cmd | join_cmd
+
+set_cmd ::= 'set' 'WS' name ('WS' word)?
+unset_cmd ::= 'unset' 'WS' name
+incr_cmd ::= 'incr' 'WS' name ('WS' word)?
+append_cmd ::= 'append' 'WS' name ('WS' word)+
+puts_cmd ::= 'puts' 'WS' ('-nonewline' 'WS')? word
+expr_cmd ::= 'expr' 'WS' expr_argument
+if_cmd ::= 'if' 'WS' test ('WS' 'then')? 'WS' body
+           ('WS' 'elseif' 'WS' test ('WS' 'then')? 'WS' body)*
+           ('WS' 'else' 'WS' body)?
+while_cmd ::= 'while' 'WS' test 'WS' body
+for_cmd ::= 'for' 'WS' body 'WS' test 'WS' body 'WS' body
+foreach_cmd ::= 'foreach' 'WS' identifier 'WS' word 'WS' body
+proc_cmd ::= 'proc' 'WS' identifier 'WS' parameters 'WS' body
+return_cmd ::= 'return' ('WS' word)?
+break_cmd ::= 'break'
+continue_cmd ::= 'continue'
+global_cmd ::= 'global' ('WS' identifier)+
+catch_cmd ::= 'catch' 'WS' body ('WS' identifier)?
+error_cmd ::= 'error' 'WS' word
+call_cmd ::= word ('WS' word)*
+
+body ::= 'BRACED'
+expr_argument ::= 'BRACED'
+test ::= expr_argument
+parameters ::= 'BRACED'
+parameter_content ::= 'LIST_WS'* (identifier ('LIST_WS' identifier)*)? 'LIST_WS'*
+name ::= identifier ('(' index ')')?
+
+list_cmd ::= 'list' ('WS' word)*
+llength_cmd ::= 'llength' 'WS' word
+lindex_cmd ::= 'lindex' 'WS' word 'WS' word
+lappend_cmd ::= 'lappend' 'WS' name ('WS' word)*
+lset_cmd ::= 'lset' 'WS' name 'WS' word 'WS' word
+dict_cmd ::= dict_create_cmd | dict_get_cmd | dict_exists_cmd | dict_set_cmd
+dict_create_cmd ::= 'dict' 'WS' 'create' ('WS' word 'WS' word)*
+dict_get_cmd ::= 'dict' 'WS' 'get' 'WS' word 'WS' word
+dict_exists_cmd ::= 'dict' 'WS' 'exists' 'WS' word 'WS' word
+dict_set_cmd ::= 'dict' 'WS' 'set' 'WS' name 'WS' word 'WS' word
+string_cmd ::= string_length_cmd | string_case_cmd | string_compare_cmd
+string_length_cmd ::= 'string' 'WS' 'length' 'WS' word
+string_case_cmd ::= 'string' 'WS' ('tolower' | 'toupper') 'WS' word
+string_compare_cmd ::= 'string' 'WS' 'compare' 'WS' word 'WS' word
+split_cmd ::= 'split' 'WS' word ('WS' word)?
+join_cmd ::= 'join' 'WS' word ('WS' word)?
+
+list_value ::= 'LIST_WS'* (element ('LIST_WS' element)*)? 'LIST_WS'*
+element ::= 'LIST_BRACED' | 'LIST_QUOTED' | 'LIST_BARE'
+
+variable_syntax ::= '$' identifier ('(' index ')')? | '${' identifier '}'
+identifier ::= letter_or_underscore (letter_or_underscore | digit)*
+letter_or_underscore ::= [A-Z] | [a-z] | '_'
+digit ::= [0-9]
+index ::= index_char+
+index_char ::= letter_or_underscore | digit | '.' | '-' | ':'
+number_syntax ::= (digit+ ('.' digit*)? | '.' digit+) exponent?
+exponent ::= ('e' | 'E') ('+' | '-')? digit+
+boolean_syntax ::= 'true' | 'false' | 'yes' | 'no' | 'on' | 'off'

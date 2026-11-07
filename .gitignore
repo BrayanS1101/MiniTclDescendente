@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Sistema
+.DS_Store
+
+# Enunciado original del profesor (no forma parte de la entrega)
+MiniTcl_Analizador_Descendente_Recursivo_Guia_Estudiante.ipynb
